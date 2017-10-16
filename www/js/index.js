@@ -1,44 +1,65 @@
-var paused_count =0;
-var resumed_count = 0;
-var launched_count = 0;
-
-document.addEventListener("deviceready", onDeviceReady, false);
-		
-	
-function updateDisplay() {
-	$("#launched").text("Application launched: " + launched_count);
-	$("#resumed").text("Application paused: " + paused_count);
-	$("#paused").text("Application resumed: " + resumed_count);
+var app = {
+	counts: {
+		paused: 0,
+		resumed: 0,
+		launched: 0
+	},
+	storage: {
+		data: {
+			["Chair"]: "Mahogany",
+			["Table"]: "Oak",
+			["Shelf"]: "Maple",
+			["Wardrobe"]: "Pine",
+			["Gazeebo"]: "Vaneer"
+		}
+	},
+	display: {}
 }
 
+document.addEventListener("deviceready", app.onDeviceReady, false);
 
-// device APIs are available
-//
-    function onDeviceReady() {
-	
-	document.addEventListener("resume", onResume, false);
-	document.addEventListener("pause", onPause, false);
-	
-	launched_count++;
-	updateDisplay();
-	    
-	alert("device ready");
-    }
+app.onDeviceReady = function() {
+	console.log("onDeviceReady");
 
+	document.addEventListener("resume", app.onResume, false);
+	document.addEventListener("pause", app.onPause, false);
 
-    function onPause() {
-	
-	paused_count++;
-	updateDisplay();
-	    
-	alert("pause");
-    }
-	
+	app.counts.launched ++;
+	app.updateDisplay();
+	app.storage.setupKeys();
+}
 
-    function onResume() {
-		
-	resumed_count++;
-	updateDisplay();
-	    
-	alert("resume");
-    }
+app.updateDisplay = function() {
+	console.log("updateDisplay");
+	$("#paused").text("Resumed: " + app.counts.paused);
+	$("#resumed").text("Paused: " + app.counts.resumed);
+	$("#launched").text("Launched: " + app.counts.launched);
+}
+
+app.onPause = function() {
+	console.log("onPause");
+	app.counts.paused ++;
+	app.updateDisplay();
+}
+
+app.onResume = function() {
+	console.log("onResume");
+	app.counts.resumed ++;
+	app.updateDisplay();
+}
+
+app.storage.setupKeys = function() {
+	console.log("gg");
+}
+
+app.storage.setItem = function(key, value) {
+	window.localStorage.setItem(key, value);
+}
+
+app.storage.getItem = function(key) {
+	return window.localStorage.getItem(key);
+}
+
+app.display.updateText = function(text) {
+	$("#item").text(text);
+}
