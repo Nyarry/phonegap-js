@@ -14,7 +14,7 @@ var app = {
 		}
 	},
 	display: {},
-	helper: {}
+	helper: {},
 }
 
 document.addEventListener("deviceready", app.onDeviceReady, false);
@@ -61,17 +61,17 @@ app.storage.setItem = function(key, value) {
 	window.localStorage.setItem(key, value);
 }
 
-app.storage.getKey = function(index) {
-	return window.localStorage.key(index);
-}
-
-app.storage.getValue = function(key) {
+app.storage.getItem = function(key) {
 	return window.localStorage.getItem(key);
 }
 
-app.storage.getPair = function(index) {
-	var key = app.storage.getKey(index);
-	var value = app.storage.getValue(key);
+app.storage.getKeyFromIndex = function(index) {
+	return window.localStorage.key(index);
+}
+
+app.storage.getItemFromIndex = function(index) {
+	var key = app.storage.getKeyFromIndex(index);
+	var value = app.storage.getItem(key);
 
 	return {key, value}
 }
@@ -79,7 +79,7 @@ app.storage.getPair = function(index) {
 app.display.updateText = function() {
 	window.setInterval(function() {
 		var index = Math.floor(Math.random() * window.localStorage.length);
-		var data = app.storage.getPair(index);
+		var data = app.storage.getItemFromIndex(index);
 
 		$("#item").text(data.key);
 		$("#typeOfWood").text(data.value);
