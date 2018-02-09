@@ -40,11 +40,13 @@ app.events.createListeners = function() {
 	document.addEventListener("online", app.events.onOnline, false);
 	document.addEventListener("offline", app.events.onOffline, false);
 	$(document).on("click", "#addTaskSubmit", app.data.createTask);
+	$(document).on("click", "#deleteTaskSubmit", app.data.deleteTask);
 }
 
 app.events.onDeviceReady = function() {
 	app.debug("app.events.onDeviceReady");
 	app.events.createListeners();
+	app.display.doJQueryMobileOverrides();
 	app.data.fetchTasks();
 }
 
@@ -60,12 +62,16 @@ app.events.onPageShow = function() {
 	app.debug("app.events.onPageShow");
 }
 
+app.display.doJQueryMobileOverrides = function() {
+	$("#addTaskSubmit").parent().html("");
+}
+
 app.display.updateTasks = function(tasks) {
 	app.debug("app.display.updateTasks");
 
 	$("#taskList").empty();
 	for (var i = 0; i < tasks.length; i++) {
-		$("#taskList").append("<li>" + tasks[i].task + "</li>");
+		$("#taskList").append("<li><span class=\"taskNumber\">" + i + "</span><span>" + tasks[i].task + "</span><input id=\"deleteTaskSubmit\" type=\"button\" class=\"button-negative\" data-id=" + tasks[i].objectId + " value=\"X\"></li>");
 	}
 	$("#taskList").listview("refresh");
 }
@@ -119,11 +125,25 @@ app.data.fetchTasks = function() {
 
 	var taskStorage = Backendless.Data.of("Tasks");
 	var queryBuilder = Backendless.DataQueryBuilder.create();
-	queryBuilder.setSortBy(["created"]);
-	queryBuilder.setPageSize(20);
+	queryBuilder.setSortBy(["created desc"]);
+	queryBuilder.setPageSize(40);
 	taskStorage.find(queryBuilder).then(processResults).catch(app.data.handleError);
 	function processResults(tasks) {
 		app.display.updateTasks(tasks)
+	}
+}
+
+app.data.updateTask = function(objectId) {
+
+}
+
+app.data.deleteTask = function() {
+	app.debug("app.data.deleteTask");
+
+	var taskStorage = Backendless.Data.of("Tasks");
+	taskStorage.remove({objectId: $(this).data("id")}).then(deleteTask).catch(app.data.handleError);
+	function deleteTask(task) {
+		app.data.fetchTasks();
 	}
 }
 
