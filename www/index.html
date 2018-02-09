@@ -4,13 +4,24 @@
     <title>Application Lifecycle Test</title>
   	<link href="assets/css/reset.css" rel="stylesheet" type="text/css">
   	<link href="assets/css/main.css" rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet" type="text/css">
+    <link href="http://fonts.googleapis.com/css?family=Open+Sans:300,400,500,600,700,800" rel="stylesheet" type="text/css">
   </head>
   <body>
-    <section id="debug">
-
+    <header></header>
+    <section id="tasks">
+      <div id="taskPage" data-role="page">
+        <div id="addTaskContainer">
+          <input id="addTaskInput" name="addTaskInput" type="text" value="" placeholder="Add a new task">
+          <input id="addTaskSubmit" type="button" value="Add task" class="button-neutral">
+          <ul id="taskList" data-role="listview"></ul>
+        </div>
+      </div>
     </section>
+    <footer></footer>
     <script src="assets/js/jquery-1.8.3.min.js" type="text/javascript" charset="utf-8" defer></script>
     <script src="assets/js/jquery.mobile-1.4.5.min.js" type="text/javascript" charset="utf-8" defer></script>
+    <script src="assets/js/backendless.js" type="text/javascript" charset="utf-8" defer></script>
     <script src="assets/js/app.js" type="text/javascript" charset="utf-8" defer></script>
   </body>
 </html>

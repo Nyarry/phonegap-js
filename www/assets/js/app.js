@@ -1,7 +1,17 @@
+Backendless.initApp("8364C802-B6B5-F3C4-FF3E-B48D04222A00","AE8854AA-AFB4-1DB7-FF7A-87AED2E58000");
+
 var app = {
 	storage: {},
 	events: {},
-	display: {}
+	display: {},
+	debug: {},
+	data: {}
+}
+
+document.addEventListener("deviceready", app.events.onDeviceReady, false);
+
+app.debug = function(str) {
+	console.log(str);
 }
 
 app.storage.setItem = function(key, value) {
@@ -23,29 +33,104 @@ app.storage.getItemFromIndex = function(index) {
 	return {key, value}
 }
 
+app.events.createListeners = function() {
+	app.debug("app.events.createListeners");
+	document.addEventListener("resume", app.events.onResume, false);
+	document.addEventListener("pause", app.events.onPause, false);
+	document.addEventListener("online", app.events.onOnline, false);
+	document.addEventListener("offline", app.events.onOffline, false);
+	$(document).on("click", "#addTaskSubmit", app.data.createTask);
+}
+
 app.events.onDeviceReady = function() {
-	console.log("app.events.onDeviceReady");
-	app.display.update();
+	app.debug("app.events.onDeviceReady");
+	app.events.createListeners();
+	app.data.fetchTasks();
 }
 
 app.events.onPause = function() {
-	console.log("app.events.onPause");
-	app.display.update();
+	app.debug("app.events.onPause");
 }
 
 app.events.onResume = function() {
-	console.log("app.events.onResume");
-	app.updateDisplay();
+	app.debug("app.events.onResume");
 }
 
-app.display.update = function() {
-	console.log("app.display.update");
+app.events.onPageShow = function() {
+	app.debug("app.events.onPageShow");
+}
+
+app.display.updateTasks = function(tasks) {
+	app.debug("app.display.updateTasks");
+
+	$("#taskList").empty();
+	for (var i = 0; i < tasks.length; i++) {
+		$("#taskList").append("<li>" + tasks[i].task + "</li>");
+	}
+	$("#taskList").listview("refresh");
+}
+
+app.data.createTask = function() {
+	app.debug("app.data.createTask");
+
+	var data = {
+		task: $("#addTaskInput").val()
+	}
+
+	if (data.task != "") {
+		var taskStorage = Backendless.Data.of("Tasks");
+		taskStorage.save(data).then(saveTasks).catch(app.data.handleError);
+
+		function saveTasks(savedTask) {
+			app.debug(savedTask)
+			app.data.fetchTasks();
+
+			$("#addTaskInput").attr("value", "");
+
+			$("#addTaskSubmit").removeClass("button-neutral");
+			$("#addTaskSubmit").addClass("button-positive");
+			$("#addTaskSubmit").attr("disabled", true);
+			$("#addTaskSubmit").attr("value", "Successfully added!");
+
+			window.setTimeout(function() {
+				$("#addTaskSubmit").removeClass("button-positive");
+				$("#addTaskSubmit").addClass("button-neutral");
+				$("#addTaskSubmit").attr("disabled", false);
+				$("#addTaskSubmit").attr("value", "Add task");
+			}, 2000);
+		}
+	} else {
+		$("#addTaskSubmit").removeClass("button-neutral");
+		$("#addTaskSubmit").addClass("button-negative");
+		$("#addTaskSubmit").attr("disabled", true);
+		$("#addTaskSubmit").attr("value", "Enter some text..");
+
+		window.setTimeout(function() {
+			$("#addTaskSubmit").removeClass("button-negative");
+			$("#addTaskSubmit").addClass("button-neutral");
+			$("#addTaskSubmit").attr("disabled", false);
+			$("#addTaskSubmit").attr("value", "Add task");
+		}, 2000);
+	}
+}
+
+app.data.fetchTasks = function() {
+	app.debug("app.data.fetchTasks");
+
+	var taskStorage = Backendless.Data.of("Tasks");
+	var queryBuilder = Backendless.DataQueryBuilder.create();
+	queryBuilder.setSortBy(["created"]);
+	queryBuilder.setPageSize(20);
+	taskStorage.find(queryBuilder).then(processResults).catch(app.data.handleError);
+	function processResults(tasks) {
+		app.display.updateTasks(tasks)
+	}
+}
+
+app.data.handleError = function(e) {
+	app.debug(e)
 }
 
 window.onload = function() {
-	document.addEventListener("deviceready", app.events.onDeviceReady, false);
-	document.addEventListener("resume", app.events.onResume, false);
-	document.addEventListener("pause", app.events.onPause, false);
-
 	app.events.onDeviceReady();
 }
