@@ -1,4 +1,4 @@
-Backendless.initApp("8364C802-B6B5-F3C4-FF3E-B48D04222A00","AE8854AA-AFB4-1DB7-FF7A-87AED2E58000");
+Backendless.initApp("8364C802-B6B5-F3C4-FF3E-B48D04222A00", "AE8854AA-AFB4-1DB7-FF7A-87AED2E58000");
 
 var app = {
 	storage: {},
@@ -253,23 +253,23 @@ app.data.updateTask = function(objectId) {
 
 app.data.deleteTask = function(objectId) {
 	app.debug("app.data.deleteTask");
+	app.display.phaseButton($("#" + objectId), NEUTRAL_NEGATIVE, "✔", true)
 
 	var taskStorage = Backendless.Data.of("Tasks");
 	taskStorage.remove({objectId: objectId}).then(deleteTask).catch(app.data.handleError);
 	function deleteTask(task) {
-		app.display.phaseButton($("#" + objectId), NEUTRAL_NEGATIVE, "✔", true)
-
 		window.setTimeout(function() {
-			$.each(app.data.activeTasks, function(index, value) {
-				if (value) {
-					if (value.objectId == objectId[0]) {
-						app.data.activeTasks.splice(index, 1);
+			if (task) {
+				$.each(app.data.activeTasks, function(index, value) {
+					if (value) {
+						if (value.objectId == objectId[0]) {
+							app.data.activeTasks.splice(index, 1);
+							app.display.updateTaskList(app.data.activeTasks);
+						}
 					}
-				}
-			});
-
-			app.display.updateTaskList(app.data.activeTasks);
-		}, 200);
+				});
+			}
+		}, 50);
 	}
 }
 
