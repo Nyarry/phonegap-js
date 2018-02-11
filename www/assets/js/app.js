@@ -5,13 +5,42 @@ var app = {
 	events: {},
 	display: {},
 	debug: {},
-	data: {}
+	data: {
+		activeTasks: []
+	},
+	util: {}
 }
+
+const DEFAULT_NEGATIVE = 0;
+const DEFAULT_NEUTRAL = 1;
+const DEFAULT_POSITIVE = 2;
+const NEGATIVE_DEFAULT = 3;
+const NEGATIVE_NEUTRAL = 5;
+const NEGATIVE_POSITIVE = 5;
+const NEUTRAL_DEFAULT = 6;
+const NEUTRAL_NEGATIVE = 7;
+const NEUTRAL_POSITIVE = 8;
+const POSITIVE_DEFAULT = 9;
+const POSITIVE_NEUTRAL = 10;
+const POSITIVE_NEGATIVE = 11;
 
 document.addEventListener("deviceready", app.events.onDeviceReady, false);
 
 app.debug = function(str) {
 	console.log(str);
+}
+
+app.util.eventHandler = function(func, ...args) {
+	app.debug("app.util.eventHandler");
+
+	return function() {
+		func(args);
+	}
+}
+
+app.util.randomItemFromArray = function(array) {
+	var item = array[Math.floor(Math.random() * array.length)];
+	return item
 }
 
 app.storage.setItem = function(key, value) {
@@ -39,8 +68,8 @@ app.events.createListeners = function() {
 	document.addEventListener("pause", app.events.onPause, false);
 	document.addEventListener("online", app.events.onOnline, false);
 	document.addEventListener("offline", app.events.onOffline, false);
-	$(document).on("click", "#addTaskSubmit", app.data.createTask);
-	$(document).on("click", "#deleteTaskSubmit", app.data.deleteTask);
+	$(document).on("click", "#task-add", app.data.createTask);
+	$(document).on("click", "#task-generate", app.data.generateTasks)
 }
 
 app.events.onDeviceReady = function() {
@@ -63,25 +92,131 @@ app.events.onPageShow = function() {
 }
 
 app.display.doJQueryMobileOverrides = function() {
-	$("#addTaskSubmit").parent().html("");
+	$("#task-add").parent().html("");
+	$("#task-generate").parent().html("");
+	$("h1").each(function() {
+		if ($(this).text() == "loading") {
+			$(this).text("");
+		}
+	});
 }
 
-app.display.updateTasks = function(tasks) {
-	app.debug("app.display.updateTasks");
+app.display.updateTaskList = function(tasks) {
+	app.debug("app.display.updateTaskList");
 
-	$("#taskList").empty();
+	$("#task-list").empty();
 	for (var i = 0; i < tasks.length; i++) {
-		$("#taskList").append("<li><span class=\"taskNumber\">" + i + "</span><span>" + tasks[i].task + "</span><input id=\"deleteTaskSubmit\" type=\"button\" class=\"button-negative\" data-id=" + tasks[i].objectId + " value=\"X\"></li>");
+		$("#task-list").append("<li><span class=\"task-number\">" + i + "</span><span class=\"task-title\">" + tasks[i].task + "</span><input id=" + tasks[i].objectId + " class=\"task-delete button-neutral\" type=\"button\" class=\"button-negative\" value=\"X\"></li>");
+		$("#" + tasks[i].objectId).click(app.util.eventHandler(app.data.deleteTask, tasks[i].objectId));
 	}
-	$("#taskList").listview("refresh");
+
+	$("#task-list").listview("refresh");
+}
+
+app.display.phaseButton = function(element, type, textToShow, revertAfterDelay) {
+	app.debug("app.display.phaseButton");
+
+	var wasDisabled = element.prop("disabled");
+	var oldText = element.val();
+	var oldClass = "button-neutral"
+	var newClass = "button-neutral"
+
+	switch(type) {
+		case DEFAULT_NEGATIVE:
+			oldClass = "button";
+			newClass = "button-negative";
+			break;
+		case DEFAULT_NEUTRAL:
+			oldClass = "button";
+			newClass = "button-neutral";
+			break;
+		case DEFAULT_POSITIVE:
+			oldClass = "button";
+			newClass = "button-positive";
+			break;
+		case NEGATIVE_DEFAULT:
+			oldClass = "button-negative";
+			newClass = "button";
+			break;
+		case NEGATIVE_NEUTRAL:
+			oldClass = "button-negative";
+			newClass = "button-neutral";
+			break;
+		case NEGATIVE_POSITIVE:
+			oldClass = "button-negative";
+			newClass = "button-positive";
+			break;
+		case NEUTRAL_DEFAULT:
+			oldClass = "button-neutral";
+			newClass = "button";
+			break;
+		case NEUTRAL_NEGATIVE:
+			oldClass = "button-neutral";
+			newClass = "button-negative";
+			break;
+		case NEUTRAL_POSITIVE:
+			oldClass = "button-neutral";
+			newClass = "button-positive";
+			break;
+		case POSITIVE_DEFAULT:
+			oldClass = "button-positive";
+			newClass = "button-default";
+			break;
+		case POSITIVE_NEGATIVE:
+			oldClass = "button-positive";
+			newClass = "button-negative";
+			break;
+		case POSITIVE_NEUTRAL:
+			oldClass = "button-positive";
+			newClass = "button-neutral";
+			break;
+	}
+
+	element.removeClass(oldClass);
+	element.addClass(newClass);
+	element.attr("disabled", true);
+	element.attr("value", textToShow);
+
+	if (revertAfterDelay) {
+		window.setTimeout(function() {
+			element.removeClass(newClass);
+			element.addClass(oldClass);
+			element.attr("disabled", wasDisabled);
+			element.attr("value", oldText);
+		}, 800);
+	}
+}
+
+app.data.generateTasks = function() {
+	app.debug("app.data.generateTasks");
+
+	var verbs = ["Eat", "Shoot", "Swallow", "Unlock", "Activate", "Smash", "Question", "Discover", "Destroy", "Bang"];
+	var determiners = ["a", "the", "every", "this"];
+	var nouns = ["cat", "wall", "hammer", "dog", "wallet", "jar of dirt", "bean", "human leg"];
+
+	for (var i = 0; i < 20; i++) {
+		var verb = app.util.randomItemFromArray(verbs);
+		var determiner = app.util.randomItemFromArray(determiners);
+		var noun = app.util.randomItemFromArray(nouns);
+		var title = verb + " " + determiner + " " + noun + ".";
+		var data = {task: title};
+
+		var taskStorage = Backendless.Data.of("Tasks");
+		taskStorage.save(data).then(saveTasks).catch(app.data.handleError);
+
+		function saveTasks(savedTask) {
+			app.debug(savedTask)
+		}
+	}
+
+	app.display.phaseButton($("#task-generate"), DEFAULT_POSITIVE, "Generating..", true)
+	app.data.fetchTasks();
 }
 
 app.data.createTask = function() {
 	app.debug("app.data.createTask");
 
-	var data = {
-		task: $("#addTaskInput").val()
-	}
+	var data = {task: $("#task-input").val()}
 
 	if (data.task != "") {
 		var taskStorage = Backendless.Data.of("Tasks");
@@ -89,34 +224,12 @@ app.data.createTask = function() {
 
 		function saveTasks(savedTask) {
 			app.debug(savedTask)
+			$("#task-input").attr("value", "");
+			app.display.phaseButton($("#task-add"), NEUTRAL_POSITIVE, "Successfully added!", true)
 			app.data.fetchTasks();
-
-			$("#addTaskInput").attr("value", "");
-
-			$("#addTaskSubmit").removeClass("button-neutral");
-			$("#addTaskSubmit").addClass("button-positive");
-			$("#addTaskSubmit").attr("disabled", true);
-			$("#addTaskSubmit").attr("value", "Successfully added!");
-
-			window.setTimeout(function() {
-				$("#addTaskSubmit").removeClass("button-positive");
-				$("#addTaskSubmit").addClass("button-neutral");
-				$("#addTaskSubmit").attr("disabled", false);
-				$("#addTaskSubmit").attr("value", "Add task");
-			}, 2000);
 		}
 	} else {
-		$("#addTaskSubmit").removeClass("button-neutral");
-		$("#addTaskSubmit").addClass("button-negative");
-		$("#addTaskSubmit").attr("disabled", true);
-		$("#addTaskSubmit").attr("value", "Enter some text..");
-
-		window.setTimeout(function() {
-			$("#addTaskSubmit").removeClass("button-negative");
-			$("#addTaskSubmit").addClass("button-neutral");
-			$("#addTaskSubmit").attr("disabled", false);
-			$("#addTaskSubmit").attr("value", "Add task");
-		}, 2000);
+		app.display.phaseButton($("#task-add"), NEUTRAL_NEGATIVE, "Enter some text..", true)
 	}
 }
 
@@ -126,10 +239,11 @@ app.data.fetchTasks = function() {
 	var taskStorage = Backendless.Data.of("Tasks");
 	var queryBuilder = Backendless.DataQueryBuilder.create();
 	queryBuilder.setSortBy(["created desc"]);
-	queryBuilder.setPageSize(40);
+	queryBuilder.setPageSize(100);
 	taskStorage.find(queryBuilder).then(processResults).catch(app.data.handleError);
 	function processResults(tasks) {
-		app.display.updateTasks(tasks)
+		app.display.updateTaskList(tasks)
+		app.data.activeTasks = tasks;
 	}
 }
 
@@ -137,13 +251,25 @@ app.data.updateTask = function(objectId) {
 
 }
 
-app.data.deleteTask = function() {
+app.data.deleteTask = function(objectId) {
 	app.debug("app.data.deleteTask");
 
 	var taskStorage = Backendless.Data.of("Tasks");
-	taskStorage.remove({objectId: $(this).data("id")}).then(deleteTask).catch(app.data.handleError);
+	taskStorage.remove({objectId: objectId}).then(deleteTask).catch(app.data.handleError);
 	function deleteTask(task) {
-		app.data.fetchTasks();
+		app.display.phaseButton($("#" + objectId), NEUTRAL_NEGATIVE, "✔", true)
+
+		window.setTimeout(function() {
+			$.each(app.data.activeTasks, function(index, value) {
+				if (value) {
+					if (value.objectId == objectId[0]) {
+						app.data.activeTasks.splice(index, 1);
+					}
+				}
+			});
+
+			app.display.updateTaskList(app.data.activeTasks);
+		}, 200);
 	}
 }
 

@@ -806,22 +806,17 @@ a.button, button, input[type="button"], input[type="submit"], input[type="reset"
 	-o-transition: all 0.15s ease-in-out 0s, background-color 0.15s cubic-bezier(0, 0, 0, 0), color 0.15s cubic-bezier(0, 0, 0, 0), width 0.15s cubic-bezier(0, 0, 0, 0), border-width 0.15s cubic-bezier(0, 0, 0, 0), border-color 0.15s cubic-bezier(0, 0, 0, 0);
 	transition: all 0.15s ease-in-out 0s, background-color 0.15s cubic-bezier(0, 0, 0, 0), color 0.15s cubic-bezier(0, 0, 0, 0), width 0.15s cubic-bezier(0, 0, 0, 0), border-width 0.15s cubic-bezier(0, 0, 0, 0), border-color 0.15s cubic-bezier(0, 0, 0, 0);
 }
-/*
-a.button:not([enabled]), button:not([enabled]), input[type="button"]:not([enabled]), input[type="submit"]:not([enabled]), input[type="reset"]:not([enabled]) {
-	cursor: inherit;
-}
-*/
-a.button, button .button:not([disabled]):not([disabled]):hover, input[type="button"]:not([disabled]):hover, input[type="submit"]:not([disabled]):hover, input[type="reset"]:not([disabled]):hover,
-button .button:not([disabled]):focus, input[type="button"]:not([disabled]):focus, input[type="submit"]:not([disabled]):focus, input[type="reset"]:not([disabled]):focus {
+a.button, button.button, input[type="button"].button, input[type="submit"].button, input[type="reset"].button {
 	background-color: #3E5770;
 	box-shadow: 0 2px 0 0 #314559;
 }
-a.button:not([disabled]):hover {
+a.button:not([disabled]):hover, button.button:not([disabled]):hover, input[type="button"].button:not([disabled]):hover, input[type="submit"].button:not([disabled]):hover, input[type="reset"].button:not([disabled]):hover,
+a.button:not([disabled]):focus, button.button:not([disabled]):focus, input[type="button"].button:not([disabled]):focus, input[type="submit"].button:not([disabled]):focus, input[type="reset"].button:not([disabled]):focus {
 	background-color: #314559;
 	box-shadow: 0 2px 0 0 #243342;
 	letter-spacing: 0.17rem;
 }
-a.button:not([disabled]):active {
+a.button:not([disabled]):active, button.button:not([disabled]):active, input[type="button"].button:not([disabled]):active, input[type="submit"].button:not([disabled]):active, input[type="reset"].button:not([disabled]):active {
 	background-color: #243342;
 	box-shadow: 0 2px 0 0 #243342;
 }
@@ -933,6 +928,22 @@ label.error {
 }
 label.success {
 	color: #1abc9c;
+}
+::-webkit-input-placeholder {
+  color: #c1c1c1;
+	font-weight: normal;
+}
+::-moz-placeholder {
+  color: #c1c1c1;
+	font-weight: normal;
+}
+:-ms-input-placeholder {
+  color: #c1c1c1;
+	font-weight: normal;
+}
+:-moz-placeholder {
+  color: #c1c1c1;
+	font-weight: normal;
 }
 /*
 	Purpose: Animations.
@@ -1048,32 +1059,42 @@ span.pagination {
 /*
   Purpose: PhoneGap
 */
-#addTaskContainer {
+#task-container {
   padding: 30px;
   width: 350px;
 }
-#addTaskInput {
-  margin-bottom: 10px;
+#task-input {
+	font-weight: bold;
+	font-size: 1.3rem;
+	color: #545454;
+	margin-bottom: 10px;
 }
-#addTaskSubmit {
-  margin-bottom: 30px;
+#task-add {
+  margin-bottom: 6px;
 }
-#deleteTaskSubmit {
-	width: 40px;
-	position: absolute;
-  right: 0;
-  top: 0;
+#task-generate {
+	margin-bottom: 30px;
 }
-#taskList li {
-  padding: 10px 0;
+#task-list li {
+  padding: 10px 0 12px 0;
 	margin: 5px 0;
 	display: table;
   width: 100%;
 }
-.taskNumber {
-	font-weight: bold;
+.task-number {
+	color: #c1c1c1;
 	padding-right: 10px;
 	width: 40px;
 	text-align: center;
-  display: table-cell;
+	display: table-cell;
+	font-weight: bold;
+}
+.task-title {
+
+}
+.task-delete {
+	width: 40px !important;
+	position: absolute !important;
+  right: 0 !important;
+  top: 0 !important;
 }
