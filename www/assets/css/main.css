@@ -1061,7 +1061,7 @@ span.pagination {
 */
 #task-container {
   padding: 30px;
-  width: 409px;
+  width: 449px;
 }
 #task-input {
 	font-weight: bold;
@@ -1093,7 +1093,7 @@ span.pagination {
 	font-weight: bold;
 }
 .task-title {
- width: 220px !important;
+ width: 260px !important;
  height: 37px !important;
  font-size: 1.3rem !important;
  background-color: #f5f7f9 !important;

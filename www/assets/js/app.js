@@ -7,7 +7,8 @@ var app = {
 	debug: {},
 	data: {
 		activeTasks: [],
-		secondsUntilListRefresh: 0
+		deleteQueue: [],
+		deletionGrace: 0
 	},
 	util: {}
 }
@@ -35,6 +36,10 @@ app.util.eventHandler = function(func, ...args) {
 	return function() {
 		func(args);
 	}
+}
+
+app.util.inArray = function(array, value) {
+	return $.inArray(value, array) != -1;
 }
 
 app.util.randomItemFromArray = function(array) {
@@ -73,11 +78,11 @@ app.events.setupListeners = function() {
 
 app.events.setupIntervals = function() {
 	setInterval(function() {
-		if (app.data.secondsUntilListRefresh >= 0) {
-			app.data.secondsUntilListRefresh -= 1;
+		if (app.data.deletionGrace >= 0) {
+			app.data.deletionGrace -= 1;
 		}
 
-		if (app.data.secondsUntilListRefresh == 0) {
+		if (app.data.deletionGrace == 0) {
 			app.display.updateTaskList(app.data.activeTasks);
 		}
 	}, 100);
@@ -205,13 +210,15 @@ app.data.generateTasks = function() {
 
 	var verbs = ["Eat", "Shoot", "Swallow", "Unlock", "Activate", "Smash", "Question", "Discover", "Destroy", "Bang"];
 	var determiners = ["a", "the", "every", "this"];
+	var adjectives = ["smelly", "great", "big", "small", "hairy", "brown", "strong", "pretty", "handsome", "powerful", "rotten"];
 	var nouns = ["cat", "wall", "hammer", "dog", "wallet", "jar of dirt", "bean", "human leg"];
 
 	for (var i = 0; i < 20; i++) {
 		var verb = app.util.randomItemFromArray(verbs);
 		var determiner = app.util.randomItemFromArray(determiners);
+		var adjective = app.util.randomItemFromArray(adjectives);
 		var noun = app.util.randomItemFromArray(nouns);
-		var title = verb + " " + determiner + " " + noun + ".";
+		var title = verb + " " + determiner + " " + adjective + " " + noun + ".";
 		var data = {task: title};
 
 		var taskStorage = Backendless.Data.of("Tasks");
@@ -262,26 +269,36 @@ app.data.fetchTasks = function() {
 app.data.updateTask = function(objectId) {
 	app.debug("app.data.updateTask");
 
+	var shouldContinue = true;
 	var data = {
 		objectId: objectId[0],
 		task: $("#title-" + objectId).val()
 	}
 
-	if (data.task != "") {
-		var taskStorage = Backendless.Data.of("Tasks");
-		taskStorage.save(data).then(saveTasks).catch(app.data.handleError);
-		function saveTasks(savedTask) {
-			app.debug(savedTask);
-			app.display.phaseButton($("#update-" + objectId), DEFAULT_POSITIVE, "", true)
+	$.each(app.data.deleteQueue, function(index, value) {
+		if (objectId[0] == value) {
+			shouldContinue = false;
 		}
-	} else {
-		app.display.phaseButton($("#update-" + objectId), DEFAULT_NEGATIVE, "", true)
+	});
+
+	if (shouldContinue) {
+		if (data.task != "") {
+			var taskStorage = Backendless.Data.of("Tasks");
+			taskStorage.save(data).then(saveTasks).catch(app.data.handleError);
+			function saveTasks(savedTask) {
+				app.debug(savedTask);
+				app.display.phaseButton($("#update-" + objectId), DEFAULT_POSITIVE, "", true);
+			}
+		} else {
+			app.display.phaseButton($("#update-" + objectId), DEFAULT_NEGATIVE, "", true);
+		}
 	}
 }
 
 app.data.deleteTask = function(objectId) {
 	app.debug("app.data.deleteTask");
 	app.display.phaseButton($("#delete-" + objectId), NEUTRAL_NEGATIVE, "", false);
+	app.data.deleteQueue.push(objectId);
 
 	var taskStorage = Backendless.Data.of("Tasks");
 	taskStorage.remove({objectId: objectId}).then(deleteTask).catch(app.data.handleError);
@@ -295,7 +312,7 @@ app.data.deleteTask = function(objectId) {
 				}
 			});
 
-			app.data.secondsUntilListRefresh = 6;
+			app.data.deletionGrace = 6;
 		}
 	}
 }
