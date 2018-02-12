@@ -6,7 +6,8 @@ var app = {
 	display: {},
 	debug: {},
 	data: {
-		activeTasks: []
+		activeTasks: [],
+		secondsUntilListRefresh: 0
 	},
 	util: {}
 }
@@ -31,8 +32,6 @@ app.debug = function(str) {
 }
 
 app.util.eventHandler = function(func, ...args) {
-	app.debug("app.util.eventHandler");
-
 	return function() {
 		func(args);
 	}
@@ -62,8 +61,8 @@ app.storage.getItemFromIndex = function(index) {
 	return {key, value}
 }
 
-app.events.createListeners = function() {
-	app.debug("app.events.createListeners");
+app.events.setupListeners = function() {
+	app.debug("app.events.setupListeners");
 	document.addEventListener("resume", app.events.onResume, false);
 	document.addEventListener("pause", app.events.onPause, false);
 	document.addEventListener("online", app.events.onOnline, false);
@@ -72,9 +71,22 @@ app.events.createListeners = function() {
 	$(document).on("click", "#task-generate", app.data.generateTasks)
 }
 
+app.events.setupIntervals = function() {
+	setInterval(function() {
+		if (app.data.secondsUntilListRefresh >= 0) {
+			app.data.secondsUntilListRefresh -= 1;
+		}
+
+		if (app.data.secondsUntilListRefresh == 0) {
+			app.display.updateTaskList(app.data.activeTasks);
+		}
+	}, 100);
+}
+
 app.events.onDeviceReady = function() {
 	app.debug("app.events.onDeviceReady");
-	app.events.createListeners();
+	app.events.setupListeners();
+	app.events.setupIntervals();
 	app.display.doJQueryMobileOverrides();
 	app.data.fetchTasks();
 }
@@ -106,8 +118,9 @@ app.display.updateTaskList = function(tasks) {
 
 	$("#task-list").empty();
 	for (var i = 0; i < tasks.length; i++) {
-		$("#task-list").append("<li><span class=\"task-number\">" + i + "</span><span class=\"task-title\">" + tasks[i].task + "</span><input id=" + tasks[i].objectId + " class=\"task-delete button-neutral\" type=\"button\" class=\"button-negative\" value=\"X\"></li>");
-		$("#" + tasks[i].objectId).click(app.util.eventHandler(app.data.deleteTask, tasks[i].objectId));
+		$("#task-list").append("<li><span class=\"task-number\">" + i + "</span><input id=\"title-" + tasks[i].objectId + "\" type=\"text\" value=\"" + tasks[i].task + "\" class=\"task-title\"><i class=\"fa fa-chevron-circle-up update-icon\"></i><input id=\"update-" + tasks[i].objectId + "\" type=\"button\" value=\"\" class=\"task-update button\"><i class=\"fa fa-bomb delete-icon\"></i><input id=\"delete-" + tasks[i].objectId + "\" type=\"button\" value=\"\" class=\"task-delete button-neutral\"></li>");
+		$("#update-" + tasks[i].objectId).click(app.util.eventHandler(app.data.updateTask, tasks[i].objectId));
+		$("#delete-" + tasks[i].objectId).click(app.util.eventHandler(app.data.deleteTask, tasks[i].objectId));
 	}
 
 	$("#task-list").listview("refresh");
@@ -203,7 +216,6 @@ app.data.generateTasks = function() {
 
 		var taskStorage = Backendless.Data.of("Tasks");
 		taskStorage.save(data).then(saveTasks).catch(app.data.handleError);
-
 		function saveTasks(savedTask) {
 			app.debug(savedTask)
 		}
@@ -248,28 +260,43 @@ app.data.fetchTasks = function() {
 }
 
 app.data.updateTask = function(objectId) {
+	app.debug("app.data.updateTask");
 
+	var data = {
+		objectId: objectId[0],
+		task: $("#title-" + objectId).val()
+	}
+
+	if (data.task != "") {
+		var taskStorage = Backendless.Data.of("Tasks");
+		taskStorage.save(data).then(saveTasks).catch(app.data.handleError);
+		function saveTasks(savedTask) {
+			app.debug(savedTask);
+			app.display.phaseButton($("#update-" + objectId), DEFAULT_POSITIVE, "", true)
+		}
+	} else {
+		app.display.phaseButton($("#update-" + objectId), DEFAULT_NEGATIVE, "", true)
+	}
 }
 
 app.data.deleteTask = function(objectId) {
 	app.debug("app.data.deleteTask");
-	app.display.phaseButton($("#" + objectId), NEUTRAL_NEGATIVE, "✔", true)
+	app.display.phaseButton($("#delete-" + objectId), NEUTRAL_NEGATIVE, "", false);
 
 	var taskStorage = Backendless.Data.of("Tasks");
 	taskStorage.remove({objectId: objectId}).then(deleteTask).catch(app.data.handleError);
-	function deleteTask(task) {
-		window.setTimeout(function() {
-			if (task) {
-				$.each(app.data.activeTasks, function(index, value) {
-					if (value) {
-						if (value.objectId == objectId[0]) {
-							app.data.activeTasks.splice(index, 1);
-							app.display.updateTaskList(app.data.activeTasks);
-						}
+	function deleteTask(deletionTime) {
+		if (deletionTime) {
+			$.each(app.data.activeTasks, function(index, value) {
+				if (value) {
+					if (value.objectId == objectId[0]) {
+						app.data.activeTasks.splice(index, 1);
 					}
-				});
-			}
-		}, 50);
+				}
+			});
+
+			app.data.secondsUntilListRefresh = 6;
+		}
 	}
 }
 

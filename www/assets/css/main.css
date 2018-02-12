@@ -1061,7 +1061,7 @@ span.pagination {
 */
 #task-container {
   padding: 30px;
-  width: 350px;
+  width: 409px;
 }
 #task-input {
 	font-weight: bold;
@@ -1076,10 +1076,13 @@ span.pagination {
 	margin-bottom: 30px;
 }
 #task-list li {
-  padding: 10px 0 12px 0;
 	margin: 5px 0;
 	display: table;
   width: 100%;
+}
+#task-list input[type="text"]:focus-within {
+	background-color: #fff !important;
+  border: 1px solid #ddd !important;
 }
 .task-number {
 	color: #c1c1c1;
@@ -1090,11 +1093,38 @@ span.pagination {
 	font-weight: bold;
 }
 .task-title {
-
+ width: 220px !important;
+ height: 37px !important;
+ font-size: 1.3rem !important;
+ background-color: #f5f7f9 !important;
 }
 .task-delete {
 	width: 40px !important;
 	position: absolute !important;
-  right: 0 !important;
-  top: 0 !important;
+  right: 3px !important;
+  top: 1px !important;
+}
+.task-update {
+	width: 40px !important;
+	position: absolute !important;
+  right: 46px !important;
+  top: 1px !important;
+}
+.update-icon {
+	cursor: pointer;
+	pointer-events: none;
+	position: absolute;
+	top: 11px;
+	right: 60px;
+	z-index: 999;
+	color: #fff;
+}
+.delete-icon {
+	cursor: pointer;
+	pointer-events: none;
+	position: absolute;
+	top: 11px;
+	right: 16px;
+	z-index: 999;
+	color: #fff;
 }
