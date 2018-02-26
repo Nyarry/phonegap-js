@@ -19,5 +19,10 @@ window.onload = function() {
 	app.storage = new Storage();
 	app.display = new Display();
 	app.data = new Data();
+	app.weather = new Weather();
+
 	app.events.onDeviceReady();
+	app.weather.activateAPIKey();
+	app.weather.getForLocation("Bromsgrove");
+
 }
