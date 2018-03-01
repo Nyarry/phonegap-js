@@ -22,7 +22,4 @@ window.onload = function() {
 	app.weather = new Weather();
 
 	app.events.onDeviceReady();
-	app.weather.activateAPIKey();
-	app.weather.getForLocation("Bromsgrove");
-
 }

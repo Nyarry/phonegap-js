@@ -13,4 +13,8 @@ class Util {
 		var item = array[Math.floor(Math.random() * array.length)];
 		return item
 	}
+
+	kelvinToCelcius(temperature) {
+		return (temperature - 273.15)
+	}
 }
