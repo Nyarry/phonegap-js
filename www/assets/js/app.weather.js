@@ -20,6 +20,9 @@ class Weather {
 				console.log("app.weather.getData(\"" + location + "\") -> Fetching data from API");
 				data.timeFetched = epoch;
 				app.storage.setItem(data.name, JSON.stringify(data))
+
+				var previousCalls = app.storage.getItem("numberOfAPICalls");
+				app.storage.setItem("numberOfAPICalls", Number(previousCalls) + 1);
 			});
 
 			return app.storage.getItem(location);
@@ -34,7 +37,7 @@ class Weather {
 	getAverageTemperature(...args) {
 		var celcius = 0;
 
-		for (var i = 0; i < args.length; i++) {
+		for (var i = 1; i < args.length; i++) {
 			celcius += app.weather.getTemperature(args[i]);
 		}
 
@@ -66,7 +69,7 @@ class Weather {
 			return 0.65
 		} else if (celcius >= -23 && celcius < -17) {
 			return 0.58
-		} else if (celcius < 23) {
+		} else if (celcius < -23) {
 			return 0.52
 		}
 	}

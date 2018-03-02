@@ -15,7 +15,7 @@ class Data {
 		var adjectives = ["smelly", "great", "big", "small", "hairy", "brown", "strong", "pretty", "handsome", "powerful", "rotten"];
 		var nouns = ["cat", "wall", "hammer", "dog", "wallet", "jar of dirt", "bean", "human leg"];
 
-		for (var i = 0; i < 20; i++) {
+		for (var i = 0; i < 5; i++) {
 			var verb = app.util.randomItemFromArray(verbs);
 			var determiner = app.util.randomItemFromArray(determiners);
 			var adjective = app.util.randomItemFromArray(adjectives);
@@ -31,7 +31,10 @@ class Data {
 		}
 
 		app.display.phaseButton($("#task-generate"), DEFAULT_POSITIVE, "Generating..", true)
-		app.data.fetchTasks();
+
+		setTimeout(function() {
+			app.data.fetchTasks();
+		}, 100);
 	}
 
 	createTask() {
