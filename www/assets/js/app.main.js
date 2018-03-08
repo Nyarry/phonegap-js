@@ -21,7 +21,6 @@ window.onload = function() {
 	app.data = new Data();
 	app.weather = new Weather();
 
-	app.events.onDeviceReady();
-	console.log(app.weather.getTemperature("London"));
-	console.log(app.weather.getTemperature("Glasgow"));
+	app.events.onDeviceReady
+	app.weather.getData("Catshill");
 }

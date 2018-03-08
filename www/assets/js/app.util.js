@@ -15,6 +15,16 @@ class Util {
 	}
 
 	kelvinToCelcius(temperature) {
-		return (temperature - 273.15)
+		return Math.round(temperature - 273.15)
+	}
+
+	delayPromise(delay) {
+		return function(data) {
+			return new Promise(function(resolve, reject) {
+				setTimeout(function() {
+					resolve(data);
+				}, delay);
+			});
+		}
 	}
 }

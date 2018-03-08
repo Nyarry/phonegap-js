@@ -1,9 +1,9 @@
 class Weather {
 	constructor() {
-		this.apiKey = "c1268fb0b6d92a90db82664c9d72f75d";
+		this.APIKey = "c1268fb0b6d92a90db82664c9d72f75d";
 	}
 
-	getData(location) {
+	fetchData(location) {
 		var data = app.storage.getItem(location);
 		var d = new Date();
 		var epoch = Math.round(d.getTime() / 1000);
@@ -14,19 +14,36 @@ class Weather {
 
 		if (data && data.timeFetched > (epoch - 3600)) {
 			console.log("app.weather.getData(\"" + location + "\") -> Fetching data from Local Storage");
-			return data
 		} else {
-			$.get("http://api.openweathermap.org/data/2.5/weather?q=" + location + "&APPID=" + this.apiKey, function(data) {
-				console.log("app.weather.getData(\"" + location + "\") -> Fetching data from API");
-				data.timeFetched = epoch;
-				app.storage.setItem(data.name, JSON.stringify(data))
+			var calls = app.storage.getItem("APICalls");
 
-				var previousCalls = app.storage.getItem("numberOfAPICalls");
-				app.storage.setItem("numberOfAPICalls", Number(previousCalls) + 1);
-			});
+			if (calls.numberOfCalls >= 60 && calls.initTime > (epoch - 3600)) {
+				$.getJSON("http://api.openweathermap.org/data/2.5/weather?q=" + location + "&APPID=" + this.APIKey, function(data) {
+					console.log("app.weather.getData(\"" + location + "\") -> Fetching data from API");
 
-			return app.storage.getItem(location);
+					data.timeFetched = epoch;
+					app.storage.setItem(data.name, JSON.stringify(data))
+
+					var previousCalls = app.storage.getItem("APICalls");
+					app.storage.setItem("APICalls", {numberOfCalls: Number(previousCalls) + 1});
+
+					if (!calls.initTime) {
+						calls.initTime = epoch;
+						app.storage.setItem("APICalls", calls);
+					}
+				});
+			}
 		}
+	}
+
+	getData(location) {
+		var data = app.storage.getItem(location);
+
+		if (!data) {
+			console.log("app.weather.getData -> Data does not exist. (Use app.weather.fetchData first)");
+		}
+
+		return JSON.parse(data);
 	}
 
 	getTemperature(location) {
